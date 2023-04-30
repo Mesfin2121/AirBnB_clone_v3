@@ -53,17 +53,19 @@ def create_amenity():
 
 
 @app_views.route('/amenities/<amenity_id>', methods=['PUT'])
-def update_amenity(city_id):
+def update_amenity(amenity_id):
     """ Updates a Amenity object by id """
     data = request.get_json()
     if data is None:
         abort(400, 'Not a JSON')
     elif data.get('name') is None:
         abort(400, 'Missing name')
-
+    ignore = ['id', 'created_at', 'updated_at']
     update_object = storage.get('Amenity', amenity_id)
     if update_object is not None:
-        update_object.name = data.get('name')
+        for key, value in data.items():
+            if key not in ignore:
+                setattr(update_object, key, value)
         storage.save()
         return (jsonify(update_object.to_dict()))
     else:

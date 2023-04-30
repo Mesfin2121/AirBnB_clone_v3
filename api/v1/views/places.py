@@ -12,12 +12,11 @@ from models.place import Place
 def place_by_city(city_id):
     """ Retrieves the list of all Place objects of a City """
     response = []
-    # all_object = storage.all('State')
-    for value in storage.all('Place').values():
-        if value.city_id == city_id:
-            response.append(value.to_dict())
-    if len(response) == 0:
+    city = storage.get('City', city_id)
+    if city is None:
         abort(404)
+    for value in city.places:
+        response.append(value.to_dict())
     return jsonify(response)
 
 
@@ -68,10 +67,7 @@ def create_place(city_id):
 @app_views.route('/places/<place_id>', methods=['PUT'])
 def update_place(place_id):
     """ Updates a Place object by id """
-    place = storage.get('Place', place_id)
     data = request.get_json()
-    if place is None:
-        abort(404)
     if data is None:
         abort(400, 'Not a JSON')
     ignore = ['id', 'user_id', 'city_id', 'created_at', 'updated_at']
@@ -79,8 +75,8 @@ def update_place(place_id):
     if update_object is not None:
         for key, value in data.items():
             if key not in ignore:
-                setattr(user, key, value)
+                setattr(update_object, key, value)
         storage.save()
-        return make_response(jsonify(user.to_dict()), 200)
+        return jsonify(update_object.to_dict()), 200
     else:
         abort(404)

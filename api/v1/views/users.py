@@ -63,17 +63,13 @@ def update_user(user_id):
     data = request.get_json()
     if data is None:
         abort(400, 'Not a JSON')
-    if data.get('name') is None:
-        abort(400, 'Missing name')
-    if data.get('name') is None:
-        abort(400, 'Missing password')
     ignore = ['id', 'email', 'created_at', 'updated_at']
     update_object = storage.get('User', user_id)
     if update_object is not None:
         for key, value in data.items():
             if key not in ignore:
-                setattr(user, key, value)
+                setattr(update_object, key, value)
         storage.save()
-        return make_response(jsonify(user.to_dict()), 200)
+        return jsonify(update_object.to_dict()), 200
     else:
         abort(404)

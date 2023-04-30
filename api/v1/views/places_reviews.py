@@ -12,12 +12,11 @@ from models.review import Review
 def review_by_place(place_id):
     """ Retrieves the list of all Review objects of a Place """
     response = []
-    # all_object = storage.all('State')
-    for value in storage.all('Review').values():
-        if value.place_id == place_id:
-            response.append(value.to_dict())
-    if len(response) == 0:
+    place = storage.get('Place', place_id)
+    if place is None:
         abort(404)
+    for review in place.reviews:
+        response.append(review.to_dict())
     return jsonify(response)
 
 
@@ -68,19 +67,16 @@ def create_review(place_id):
 @app_views.route('/reviews/<review_id>', methods=['PUT'])
 def update_review(review_id):
     """ Updates a Review object by id """
-    review = storage.get('Review', review_id)
+    update_object = storage.get('Review', review_id)
     data = request.get_json()
-    if place is None:
-        abort(404)
     if data is None:
         abort(400, 'Not a JSON')
     ignore = ['id', 'user_id', 'place_id', 'created_at', 'updated_at']
-    update_object = storage.get('Review', review_id)
     if update_object is not None:
         for key, value in data.items():
             if key not in ignore:
-                setattr(user, key, value)
+                setattr(update_object, key, value)
         storage.save()
-        return make_response(jsonify(user.to_dict()), 200)
+        return jsonify(update_object.to_dict()), 200
     else:
         abort(404)
